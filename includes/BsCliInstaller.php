@@ -41,6 +41,14 @@ class BsCliInstaller extends CliInstaller {
 	private $edition = 'free';
 
 	/**
+	 * Holds extensions processed in method getAutoExtension.
+	 * This extensions are skipped in getAutoExtensionLegacyHooks.
+	 *
+	 * @var array
+	 */
+	private $processedAutoExtensions = [];
+
+	/**
 	 * @param string $siteName
 	 * @param string|null $admin
 	 * @param array $options
