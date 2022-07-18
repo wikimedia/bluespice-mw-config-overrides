@@ -10,12 +10,17 @@ use MediaWiki\HookContainer\StaticHookRegistry;
 use MediaWiki\MediaWikiServices as MediaWikiMediaWikiServices;
 
 // New constants
+$sTMPUploadDir = empty( $GLOBALS['wgUploadDirectory'] )
+	? $GLOBALS['IP'] . DIRECTORY_SEPARATOR . 'images'
+	: $GLOBALS['wgUploadDirectory'];
 
-$sTMPUploadDir = empty( $GLOBALS['wgUploadDirectory'] ) ? $GLOBALS['IP'] . DIRECTORY_SEPARATOR . 'images' : $GLOBALS['wgUploadDirectory'];
+$sTMPCacheDir = empty( $GLOBALS['wgFileCacheDirectory'] )
+	? $sTMPUploadDir . DIRECTORY_SEPARATOR . 'cache'
+	: $GLOBALS['wgFileCacheDirectory'];
 
-$sTMPCacheDir = empty( $GLOBALS['wgFileCacheDirectory'] ) ? $sTMPUploadDir . DIRECTORY_SEPARATOR . 'cache' : $GLOBALS['wgFileCacheDirectory'];
-
-$sTMPUploadPath = empty( $GLOBALS['wgUploadPath'] ) ? $GLOBALS['wgScriptPath'] . "/images" : $GLOBALS['wgUploadPath'];
+$sTMPUploadPath = empty( $GLOBALS['wgUploadPath'] )
+	? $GLOBALS['wgScriptPath'] . "/images"
+	: $GLOBALS['wgUploadPath'];
 
 if ( !defined( 'BS_DATA_DIR' ) ) {
 	// Future

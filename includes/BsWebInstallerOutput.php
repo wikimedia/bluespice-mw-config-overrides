@@ -38,6 +38,7 @@ class BsWebInstallerOutput extends WebInstallerOutput {
 	 * @return void
 	 */
 	public function outputTitle() {
+		// phpcs:ignore MediaWiki.Usage.DeprecatedGlobalVariables.Deprecated$wgVersion
 		global $wgVersion;
 		$foundationManifestFile = __DIR__
 			. '/../../../extensions/BlueSpiceFoundation/extension.json';

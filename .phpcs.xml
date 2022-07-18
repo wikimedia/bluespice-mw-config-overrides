@@ -4,6 +4,7 @@
 	</rule>
 	<file>.</file>
 	<exclude-pattern>*/vendor/*</exclude-pattern>
+	<exclude-pattern>*/tests/phpunit/data/*</exclude-pattern>
 	<arg name="bootstrap" value="./vendor/mediawiki/mediawiki-codesniffer/utils/bootstrap-ci.php"/>
 	<arg name="extensions" value="php,php5,inc"/>
 	<arg name="encoding" value="UTF-8"/>i
