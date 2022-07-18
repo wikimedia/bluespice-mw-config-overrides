@@ -36,6 +36,7 @@ class BsAutoExtensionHandler {
 	 *
 	 * @var string
 	 */
+	// phpcs:ignore Generic.Files.LineLength.TooLong
 	private $requireSetupFileRegex = "#require_once\(*\s*.*?['|\"].*?\/(extensions|skins)\/(.*?)\/(.*?)\.php['|\"]\s*\)*#";
 
 	/**
@@ -85,17 +86,13 @@ class BsAutoExtensionHandler {
 				continue;
 			}
 
-			$matches = [];
-			preg_match( '#(.*?)(\.local)*.php#', $entry, $matches );
-			$fileName = $matches[1];
-
-			$local = false;
-			if ( $matches[2] === '.local' ) {
-				$local = true;
+			$maybeLocalCopy = preg_replace( '#\.php$#', '.local.php', $entry );
+			if ( file_exists( $maybeLocalCopy ) ) {
+				continue;
 			}
+			$fileName = $entry;
 
-			if ( !array_key_exists( $fileName, $this->files )
-				|| ( array_key_exists( $fileName, $this->files ) && $local === true ) ) {
+			if ( !array_key_exists( $fileName, $this->files ) ) {
 				$this->files[$fileName] = $filePath;
 			}
 		}
