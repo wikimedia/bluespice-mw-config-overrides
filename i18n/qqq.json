@@ -19,5 +19,7 @@
 	"bs-mainpage-content-tutorials-title": "Title for tutorial section on main page",
 	"config-install-sidebar": "Installer message for creating MediaWiki:Sidebar with default content",
 	"config-install-sidebar-exists": "Installer message for creating MediaWiki:Sidebar if it already exists",
-	"config-install-sidebar-failed": "Installer message for creating MediaWiki:Sidebar if it fails"
+	"config-install-sidebar-failed": "Installer message for creating MediaWiki:Sidebar if it fails",
+	"config-install-default-bs-content": "Installer message for creating default BlueSpice content",
+	"config-install-default-bs-content-failed": "Installer message for creating default BlueSpice content if it fails"
 }
