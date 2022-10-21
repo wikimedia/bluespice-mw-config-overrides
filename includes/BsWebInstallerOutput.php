@@ -33,6 +33,31 @@
 class BsWebInstallerOutput extends WebInstallerOutput {
 
 	/**
+	 * Opens a textarea used to display the progress of a long operation
+	 * Copied from {@link \WebInstallerPage::startLiveBox}
+	 */
+	public function startLiveBox() {
+		$this->addHTML(
+			'<div id="config-spinner" style="display:none;">' .
+			'<img src="images/ajax-loader.gif" /></div>' .
+			'<script>jQuery( "#config-spinner" ).show();</script>' .
+			'<div id="config-live-log">' .
+			'<textarea name="LiveLog" rows="10" cols="30" readonly="readonly">'
+		);
+		$this->flush();
+	}
+
+	/**
+	 * Opposite to BsWebInstallerOutput::startLiveBox
+	 * Copied from {@link \WebInstallerPage::endLiveBox}
+	 */
+	public function endLiveBox() {
+		$this->addHTML( '</textarea></div>
+<script>jQuery( "#config-spinner" ).hide()</script>' );
+		$this->flush();
+	}
+
+	/**
 	 * BlueSpice
 	 *
 	 * @return void

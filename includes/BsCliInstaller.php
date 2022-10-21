@@ -7,7 +7,12 @@ use BlueSpice\Installer\AutoExtensionHandler as BsAutoExtensionHandler;
 use BlueSpice\Installer\BsEdition;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\StaticHookRegistry;
+use MediaWiki\Logger\LoggerFactory;
+use MediaWiki\MediaWikiServices;
 use MediaWiki\MediaWikiServices as MediaWikiMediaWikiServices;
+use MWStake\MediaWiki\Component\ContentProvisioner\ContentProvisionerPipeline;
+use MWStake\MediaWiki\Component\ContentProvisioner\ContentProvisionerRegistry\FileBasedRegistry;
+use MWStake\MediaWiki\Component\ContentProvisioner\Output\PrintOutput;
 
 // New constants
 $sTMPUploadDir = empty( $GLOBALS['wgUploadDirectory'] )
@@ -82,7 +87,8 @@ class BsCliInstaller extends CliInstaller {
 	protected function getInstallSteps( DatabaseInstaller $installer ) {
 		$this->installSteps = parent::getInstallSteps( $installer );
 		$bsInstallSteps = [
-			[ 'name' => 'sidebar', 'callback' => [ $this, 'createSidebar' ] ]
+			[ 'name' => 'sidebar', 'callback' => [ $this, 'createSidebar' ] ],
+			[ 'name' => 'default-bs-content', 'callback' => [ $this, 'createDefaultBsContent' ] ]
 		];
 
 		// Add BlueSpice install steps to the core install list,
@@ -301,6 +307,32 @@ class BsCliInstaller extends CliInstaller {
 		} catch ( Exception $e ) {
 			// using raw, because $wgShowExceptionDetails can not be set yet
 			$status->fatal( 'config-install-sidebar-failed', $e->getMessage() );
+		}
+
+		return $status;
+	}
+
+	/**
+	 * Processes manifests with default BlueSpice content and imports it.
+	 *
+	 * @param DatabaseInstaller $installer
+	 * @return Status
+	 */
+	protected function createDefaultBsContent( DatabaseInstaller $installer ) {
+		$installPath = $this->getVar( 'IP' );
+
+		$objectFactory = MediaWikiServices::getInstance()->getObjectFactory();
+
+		$contentProvisionerRegistry = new FileBasedRegistry( $this->processedAutoExtensions, $installPath );
+
+		$contentProvisionerPipeline = new ContentProvisionerPipeline( $objectFactory, $contentProvisionerRegistry );
+		$contentProvisionerPipeline->setLogger( LoggerFactory::getInstance( 'ContentProvisioner' ) );
+		$contentProvisionerPipeline->setOutput( new PrintOutput() );
+
+		try {
+			$status = $contentProvisionerPipeline->execute();
+		} catch ( Exception $e ) {
+			$status = Status::newFatal( 'config-install-default-bs-content-failed', $e->getMessage() );
 		}
 
 		return $status;

@@ -19,5 +19,7 @@
 	"bs-mainpage-content-tutorials-title": "For an easy start",
 	"config-install-sidebar": "Creating MediaWiki:Sidebar with default content",
 	"config-install-sidebar-exists": "MediaWiki:Sidebar already exists, skipping",
-	"config-install-sidebar-failed": "Could not insert MediaWiki:Sidebar: $1"
+	"config-install-sidebar-failed": "Could not insert MediaWiki:Sidebar: $1",
+	"config-install-default-bs-content": "Creating default BlueSpice content",
+	"config-install-default-bs-content-failed": "Could not create default BlueSpice content: $1"
 }
