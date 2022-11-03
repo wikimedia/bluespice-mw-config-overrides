@@ -1,9 +1,9 @@
 <?php
 
-require_once $GLOBALS['IP'] . '/mw-config/overrides/includes/BsAutoExtensionHandler.php';
+require_once $GLOBALS['IP'] . '/extensions/BlueSpiceFoundation/src/BsAutoExtensionHandler.php';
 require_once $GLOBALS['IP'] . '/mw-config/overrides/includes/BsEdition.php';
 
-use BlueSpice\Installer\BsAutoExtensionHandler;
+use BlueSpice\BsAutoExtensionHandler;
 use BlueSpice\Installer\BsEdition;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\StaticHookRegistry;
