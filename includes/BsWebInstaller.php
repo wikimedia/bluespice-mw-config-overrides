@@ -21,10 +21,10 @@
  * @ingroup Installer
  */
 
-require_once $GLOBALS['IP'] . '/extensions/BlueSpiceFoundation/src/BsAutoExtensionHandler.php';
+require_once $GLOBALS['IP'] . '/extensions/BlueSpiceFoundation/src/Installer/AutoExtensionHandler.php';
 require_once $GLOBALS['IP'] . '/mw-config/overrides/includes/BsEdition.php';
 
-use BlueSpice\BsAutoExtensionHandler;
+use BlueSpice\Installer\AutoExtensionHandler as BsAutoExtensionHandler;
 use BlueSpice\Installer\BsEdition;
 use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\StaticHookRegistry;
