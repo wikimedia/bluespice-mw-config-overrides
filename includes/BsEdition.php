@@ -16,7 +16,7 @@ class BsEdition {
 	 *
 	 * @var string
 	 */
-	private $edition = 'free';
+	private $edition = 'pro';
 
 	/**
 	 * BlueSpice editions
