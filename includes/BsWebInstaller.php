@@ -30,6 +30,7 @@ use MediaWiki\HookContainer\HookContainer;
 use MediaWiki\HookContainer\StaticHookRegistry;
 use MediaWiki\Logger\LoggerFactory;
 use MediaWiki\MediaWikiServices;
+use MediaWiki\Revision\SlotRecord;
 use MWStake\MediaWiki\Component\ContentProvisioner\ContentProvisionerPipeline;
 use MWStake\MediaWiki\Component\ContentProvisioner\ContentProvisionerRegistry\FileBasedRegistry;
 use MWStake\MediaWiki\Component\ContentProvisioner\Output\PrintOutput;
@@ -278,15 +279,14 @@ class BsWebInstaller extends WebInstaller {
 				$rawContent
 			);
 			$content = new WikitextContent( $processedContent );
-
 			$page = WikiPage::factory( $title );
-			$status = $page->doEditContent(
-				$content,
-				'',
-				EDIT_NEW,
-				false,
-				User::newSystemUser( 'BlueSpice default' )
-			);
+			$user = User::newSystemUser( 'BlueSpice default' );
+
+			$updater = $page->newPageUpdater( $user );
+			$updater->setContent( SlotRecord::MAIN, $content );
+			$comment = CommentStoreComment::newUnsavedComment( '' );
+			$updater->saveRevision( $comment, EDIT_NEW );
+			$status = $updater->getStatus();
 		} catch ( Exception $e ) {
 			// using raw, because $wgShowExceptionDetails can not be set yet
 			$status->fatal( 'config-install-mainpage-failed', $e->getMessage() );
@@ -313,15 +313,14 @@ class BsWebInstaller extends WebInstaller {
 
 			$rawContent = file_get_contents( $path );
 			$content = new WikitextContent( $rawContent );
-
 			$page = WikiPage::factory( $title );
-			$status = $page->doEditContent(
-				$content,
-				'',
-				EDIT_NEW,
-				false,
-				User::newSystemUser( 'BlueSpice default' )
-			);
+			$user = User::newSystemUser( 'BlueSpice default' );
+
+			$updater = $page->newPageUpdater( $user );
+			$updater->setContent( SlotRecord::MAIN, $content );
+			$comment = CommentStoreComment::newUnsavedComment( '' );
+			$updater->saveRevision( $comment, EDIT_NEW );
+			$status = $updater->getStatus();
 		} catch ( Exception $e ) {
 			// using raw, because $wgShowExceptionDetails can not be set yet
 			$status->fatal( 'config-install-sidebar-failed', $e->getMessage() );
