@@ -215,7 +215,8 @@ class BsWebInstaller extends WebInstaller {
 				$rawContent
 			);
 			$content = new WikitextContent( $processedContent );
-			$page = WikiPage::factory( $title );
+			$page = MediaWikiServices::getInstance()->getWikiPageFactory()
+				->newFromTitle( $title );
 			$user = User::newSystemUser( 'BlueSpice default' );
 
 			$updater = $page->newPageUpdater( $user );
@@ -249,7 +250,8 @@ class BsWebInstaller extends WebInstaller {
 
 			$rawContent = file_get_contents( $path );
 			$content = new WikitextContent( $rawContent );
-			$page = WikiPage::factory( $title );
+			$page = MediaWikiServices::getInstance()->getWikiPageFactory()
+				->newFromTitle( $title );
 			$user = User::newSystemUser( 'BlueSpice default' );
 
 			$updater = $page->newPageUpdater( $user );
