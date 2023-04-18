@@ -280,6 +280,17 @@ class BsWebInstaller extends WebInstaller {
 			$processedExtensions[] = $e;
 		}
 
+		// Some imported templates may contain "*.css" subpages containing CSS styles for that template
+		// Example: "Template:SomeTemplate/styles.css"
+		// Such "*.css" wiki pages are handled by "sanitized-css" content model from "TemplateStyles" extension
+		// That "sanitized-css" content model and corresponding handler are registered via hook in "TemplateStyles".
+		// But, as soon as installer doesn't know anything about hooks from extensions, we cannot apply that model here.
+		// In such cases "wikitext" content model will be applied to "Template:*/*.css" pages.
+		// As a result, CSS will be outputted as wikitext - that's wrong.
+
+		// So we need to mock "sanitized-css" content model here
+		$this->mockSanitizedCssContentModel();
+
 		$objectFactory = MediaWikiServices::getInstance()->getObjectFactory();
 
 		$contentProvisionerRegistry = new FileBasedRegistry( $processedExtensions, $installPath );
@@ -292,12 +303,38 @@ class BsWebInstaller extends WebInstaller {
 			$this->output->startLiveBox();
 
 			$status = $contentProvisionerPipeline->execute();
-
-			$this->output->endLiveBox();
 		} catch ( Exception $e ) {
 			$status = Status::newFatal( 'config-install-default-bs-content-failed', $e->getMessage() );
+		} finally {
+			$this->output->endLiveBox();
 		}
 
 		return $status;
+	}
+
+	/**
+	 * Mock "sanitize-css" content model.
+	 *
+	 * @return void
+	 */
+	private function mockSanitizedCssContentModel(): void {
+		// We cannot use actual handler for "sanitized-css" here
+		// Which is "\MediaWiki\Extension\TemplateStyles\TemplateStylesContentHandler"
+		// Because it has some dependencies which we cannot fulfill in installer
+		// So use some fallback content handler just for installer
+		$contentHandlerFactory = MediaWikiServices::getInstance()->getContentHandlerFactory();
+		$contentHandlerFactory->defineContentHandler( 'sanitized-css', FallbackContentHandler::class );
+
+		// That's almost complete copy of "\MediaWiki\Extension\TemplateStyles\Hooks::onContentHandlerDefaultModelFor"
+		$GLOBALS['wgHooks']['ContentHandlerDefaultModelFor'][] = static function( $title, &$model ) {
+			if ( $title->getNamespace() === NS_TEMPLATE &&
+				$title->isSubpage() && substr( $title->getText(), -4 ) === '.css' ) {
+				$model = 'sanitized-css';
+
+				return false;
+			}
+
+			return true;
+		};
 	}
 }
