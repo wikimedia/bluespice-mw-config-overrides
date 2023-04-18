@@ -189,7 +189,7 @@ class BsCliInstaller extends CliInstaller {
 			$rawContent = file_get_contents( $path );
 			$processedContent = preg_replace_callback(
 				'#\{\{int:(.*?)\}\}#si',
-				function ( $matches ) {
+				static function ( $matches ) {
 					return wfMessage( $matches[1] )->inContentLanguage()->text();
 				},
 				$rawContent
