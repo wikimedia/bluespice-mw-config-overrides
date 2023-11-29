@@ -77,7 +77,7 @@ class BsCliInstaller extends CliInstaller {
 	 * @phan-return array<int,array{name:string,callback:array{0:object,1:string}}>
 	 */
 	protected function getInstallSteps( DatabaseInstaller $installer ) {
-		$this->installSteps = parent::getInstallSteps( $installer );
+		$installSteps = parent::getInstallSteps( $installer );
 		$bsInstallSteps = [
 			[ 'name' => 'sidebar', 'callback' => [ $this, 'createSidebar' ] ],
 			[ 'name' => 'default-bs-content', 'callback' => [ $this, 'createDefaultBsContent' ] ]
@@ -86,10 +86,10 @@ class BsCliInstaller extends CliInstaller {
 		// Add BlueSpice install steps to the core install list,
 		// then adding any callbacks that wanted to attach after a given step
 		foreach ( $bsInstallSteps as $step ) {
-			$this->installSteps[] = $step;
+			$installSteps[] = $step;
 			if ( isset( $this->extraInstallSteps[$step['name']] ) ) {
-				$this->installSteps = array_merge(
-					$this->installSteps,
+				$installSteps = array_merge(
+					$installSteps,
 					$this->extraInstallSteps[$step['name']]
 				);
 			}
@@ -97,18 +97,18 @@ class BsCliInstaller extends CliInstaller {
 
 		// Extensions should always go first, chance to tie into hooks and such
 		$extensionStep = [];
-		foreach ( $this->installSteps as $key => $step ) {
+		foreach ( $installSteps as $key => $step ) {
 			if ( $step['name'] === 'extensions' ) {
 				$extensionStep = $step;
-				unset( $this->installSteps[$key] );
+				unset( $installSteps[$key] );
 				break;
 			}
 		}
 		if ( !empty( $extensionStep ) ) {
-			array_unshift( $this->installSteps, $extensionStep );
+			array_unshift( $installSteps, $extensionStep );
 		}
 
-		return $this->installSteps;
+		return $installSteps;
 	}
 
 	/**
@@ -303,7 +303,7 @@ class BsCliInstaller extends CliInstaller {
 		$contentHandlerFactory->defineContentHandler( 'sanitized-css', FallbackContentHandler::class );
 
 		// That's almost complete copy of "\MediaWiki\Extension\TemplateStyles\Hooks::onContentHandlerDefaultModelFor"
-		$GLOBALS['wgHooks']['ContentHandlerDefaultModelFor'][] = static function( $title, &$model ) {
+		$GLOBALS['wgHooks']['ContentHandlerDefaultModelFor'][] = static function ( $title, &$model ) {
 			if ( $title->getNamespace() === NS_TEMPLATE &&
 				$title->isSubpage() && substr( $title->getText(), -4 ) === '.css' ) {
 				$model = 'sanitized-css';
