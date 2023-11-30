@@ -79,8 +79,7 @@ class BsCliInstaller extends CliInstaller {
 	protected function getInstallSteps( DatabaseInstaller $installer ) {
 		$this->installSteps = parent::getInstallSteps( $installer );
 		$bsInstallSteps = [
-			[ 'name' => 'sidebar', 'callback' => [ $this, 'createSidebar' ] ],
-			[ 'name' => 'default-bs-content', 'callback' => [ $this, 'createDefaultBsContent' ] ]
+			[ 'name' => 'sidebar', 'callback' => [ $this, 'createSidebar' ] ]
 		];
 
 		// Add BlueSpice install steps to the core install list,
@@ -243,49 +242,6 @@ class BsCliInstaller extends CliInstaller {
 		} catch ( Exception $e ) {
 			// using raw, because $wgShowExceptionDetails can not be set yet
 			$status->fatal( 'config-install-sidebar-failed', $e->getMessage() );
-		}
-
-		return $status;
-	}
-
-	/**
-	 * Processes manifests with default BlueSpice content and imports it.
-	 *
-	 * @param DatabaseInstaller $installer
-	 * @return Status
-	 */
-	protected function createDefaultBsContent( DatabaseInstaller $installer ) {
-		$installPath = $this->getVar( 'IP' );
-		$exts = $this->getVar( '_Extensions' );
-
-		$processedExtensions = [];
-		foreach ( $exts as $e ) {
-			$processedExtensions[] = $e;
-		}
-
-		// Some imported templates may contain "*.css" subpages containing CSS styles for that template
-		// Example: "Template:SomeTemplate/styles.css"
-		// Such "*.css" wiki pages are handled by "sanitized-css" content model from "TemplateStyles" extension
-		// That "sanitized-css" content model and corresponding handler are registered via hook in "TemplateStyles".
-		// But, as soon as installer doesn't know anything about hooks from extensions, we cannot apply that model here.
-		// In such cases "wikitext" content model will be applied to "Template:*/*.css" pages.
-		// As a result, CSS will be outputted as wikitext - that's wrong.
-
-		// So we need to mock "sanitized-css" content model here
-		$this->mockSanitizedCssContentModel();
-
-		$objectFactory = MediaWikiServices::getInstance()->getObjectFactory();
-
-		$contentProvisionerRegistry = new FileBasedRegistry( $processedExtensions, $installPath );
-
-		$contentProvisionerPipeline = new ContentProvisionerPipeline( $objectFactory, $contentProvisionerRegistry );
-		$contentProvisionerPipeline->setLogger( LoggerFactory::getInstance( 'ContentProvisioner' ) );
-		$contentProvisionerPipeline->setOutput( new PrintOutput() );
-
-		try {
-			$status = $contentProvisionerPipeline->execute();
-		} catch ( Exception $e ) {
-			$status = Status::newFatal( 'config-install-default-bs-content-failed', $e->getMessage() );
 		}
 
 		return $status;
