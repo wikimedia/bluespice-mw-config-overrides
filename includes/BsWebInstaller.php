@@ -265,30 +265,4 @@ class BsWebInstaller extends WebInstaller {
 
 		return $status;
 	}
-
-	/**
-	 * Mock "sanitize-css" content model.
-	 *
-	 * @return void
-	 */
-	private function mockSanitizedCssContentModel(): void {
-		// We cannot use actual handler for "sanitized-css" here
-		// Which is "\MediaWiki\Extension\TemplateStyles\TemplateStylesContentHandler"
-		// Because it has some dependencies which we cannot fulfill in installer
-		// So use some fallback content handler just for installer
-		$contentHandlerFactory = MediaWikiServices::getInstance()->getContentHandlerFactory();
-		$contentHandlerFactory->defineContentHandler( 'sanitized-css', FallbackContentHandler::class );
-
-		// That's almost complete copy of "\MediaWiki\Extension\TemplateStyles\Hooks::onContentHandlerDefaultModelFor"
-		$GLOBALS['wgHooks']['ContentHandlerDefaultModelFor'][] = static function ( $title, &$model ) {
-			if ( $title->getNamespace() === NS_TEMPLATE &&
-				$title->isSubpage() && substr( $title->getText(), -4 ) === '.css' ) {
-				$model = 'sanitized-css';
-
-				return false;
-			}
-
-			return true;
-		};
-	}
 }
