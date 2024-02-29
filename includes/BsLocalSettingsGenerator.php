@@ -57,10 +57,8 @@ require_once \"\$IP/LocalSettings.BlueSpice.php\";
 \$bsgGroupRoles['*']['reader'] = false;
 
 # Convenience for debugging
-# \$wgShowSQLErrors = true;
 # \$wgDebugDumpSql  = true;
 # \$wgShowExceptionDetails = true;
-# \$wgShowDBErrorBacktrace = true;
 
 ";
 		$old = [ '$wgPingback = true;' ];
