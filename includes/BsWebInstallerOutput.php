@@ -21,6 +21,8 @@
  * @ingroup Deployment
  */
 
+use MediaWiki\Installer\WebInstallerOutput;
+
 /**
  * BlueSpice output class modelled on OutputPage.
  *

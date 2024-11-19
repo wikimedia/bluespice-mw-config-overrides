@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\Installer\WebInstallerOptions;
+
 class BsWebInstallerOptions extends WebInstallerOptions {
 	/**
 	 * We need a class attribute in order to hide the skins/extensions sections via CSS
