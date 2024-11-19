@@ -21,6 +21,8 @@
  * @ingroup Deployment
  */
 
+use MediaWiki\Installer\LocalSettingsGenerator;
+
 /**
  * Class for generating BlueSpice LocalSettings.php file.
  *

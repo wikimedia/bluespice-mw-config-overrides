@@ -1,5 +1,7 @@
 <?php
 
+use MediaWiki\Installer\WebInstallerDBConnect;
+
 class BsWebInstallerDBConnect extends WebInstallerDBConnect {
 
 	/**
