@@ -54,8 +54,8 @@ require_once \"\$IP/LocalSettings.BlueSpice.php\";
 
 		$localSettings .= "\n";
 		$localSettings .= "
-\$wgUserMergeProtectedGroups = array();
-\$wgUserMergeUnmergeable = array();
+\$wgUserMergeProtectedGroups = [];
+\$wgUserMergeUnmergeable = [];
 \$bsgGroupRoles['*']['reader'] = false;
 
 # Convenience for debugging
