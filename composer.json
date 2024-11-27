@@ -12,8 +12,7 @@
 		}
 	},
 	"require": {
-		"composer/installers": "~1.0|~2",
-		"mwstake/mediawiki-component-contentprovisioner": "~1"
+		"composer/installers": "~1.0|~2"
 	},
 	"require-dev": {
 		"mediawiki/mediawiki-codesniffer": "39.0.0",
@@ -31,11 +30,6 @@
 			"minus-x fix .",
 			"phpcbf"
 		]
-	},
-	"autoload": {
-		"psr-4": {
-			"\\BlueSpice\\Installer\\Tests\\": "tests/phpunit"
-		}
 	},
 	"config": {
 		"allow-plugins": {
