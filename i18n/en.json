@@ -14,7 +14,7 @@
 	"bs-mainpage-content-pagetitle-free": "Welcome to BlueSpice free",
 	"bs-mainpage-content-pagetitle-pro": "Welcome to BlueSpice pro",
 	"bs-mainpage-content-pagetitle-cloud": "Welcome to BlueSpice pro Cloud",
-	"bs-mainpage-content-tutorials-links": "\n\n[https://en.wiki.bluespice.com/wiki/Manual:Create pages How do I create a page?]\n\n[https://en.wiki.bluespice.com/wiki/Manual:Extension/VisualEditor How do I format text?]\n\n[https://en.wiki.bluespice.com/wiki/Manual:Extension/VisualEditor/Tables How do I work with tables?]\n\n",
+	"bs-mainpage-content-tutorials-links": "\n\n[https://en.wiki.bluespice.com/wiki/Manual:Create_pages How do I create a page?]\n\n[https://en.wiki.bluespice.com/wiki/Manual:Extension/VisualEditor How do I format text?]\n\n[https://en.wiki.bluespice.com/wiki/Manual:Extension/VisualEditor/Tables How do I work with tables?]\n\n",
 	"bs-mainpage-content-tutorials-text": "Get familiar with BlueSpice.",
 	"bs-mainpage-content-tutorials-title": "For an easy start",
 	"config-install-sidebar": "Creating MediaWiki:Sidebar with default content",
