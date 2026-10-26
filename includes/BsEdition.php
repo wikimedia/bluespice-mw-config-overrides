@@ -23,7 +23,7 @@ class BsEdition {
 	 *
 	 * @var array
 	 */
-	private $editions = [ 'free', 'pro', 'cloud' ];
+	private $editions = [ 'free', 'pro', 'cloud', 'galaxy' ];
 
 	/**
 	 * Path to edition file
