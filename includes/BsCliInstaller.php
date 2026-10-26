@@ -6,7 +6,7 @@ use BlueSpice\Installer\BsEdition;
 use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Content\WikitextContent;
 use MediaWiki\Installer\CliInstaller;
-use MediaWiki\Installer\DatabaseInstaller;
+use MediaWiki\Installer\Task\ITaskContext;
 use MediaWiki\MediaWikiServices;
 use MediaWiki\Revision\SlotRecord;
 use MediaWiki\Status\Status;
@@ -31,30 +31,16 @@ class BsCliInstaller extends CliInstaller {
 
 		$blueSpiceEdition = new BsEdition();
 		$this->edition = $blueSpiceEdition->getEdition();
-	}
 
-	/**
-	 * @inheritDoc
-	 */
-	protected function getInstallSteps( DatabaseInstaller $installer ) {
-		$installSteps = parent::getInstallSteps( $installer );
-		$bsInstallSteps = [
-			[ 'name' => 'sidebar', 'callback' => [ $this, 'createSidebar' ] ]
-		];
-
-		// Add BlueSpice install steps to the core install list,
-		// then adding any callbacks that wanted to attach after a given step
-		foreach ( $bsInstallSteps as $step ) {
-			$installSteps[] = $step;
-			if ( isset( $this->extraInstallSteps[$step['name']] ) ) {
-				$installSteps = array_merge(
-					$installSteps,
-					$this->extraInstallSteps[$step['name']]
-				);
-			}
-		}
-
-		return $installSteps;
+		$this->setVar( 'wgInstallerInitialPages', [] );
+		$this->addInstallStep( [
+			'name' => 'default-bs-content',
+			'callback' => [ $this, 'createMainpage' ]
+		], 'mainpage' );
+		$this->addInstallStep( [
+			'name' => 'sidebar',
+			'callback' => [ $this, 'createSidebar' ]
+		], 'mainpage' );
 	}
 
 	/**
@@ -84,43 +70,34 @@ class BsCliInstaller extends CliInstaller {
 	}
 
 	/**
-	 * Insert Main Page with default content.
+	 * Insert Main Page with default content, and the "Getting started"
+	 * help page if the edition has one.
+	 * Files used by the galaxy content are imported by
+	 * BlueSpiceWikiFarm's `ImportDefaultContentFiles` during update.php,
+	 * because the installer does not know the upload directory.
 	 *
-	 * @param DatabaseInstaller $installer
+	 * @param ITaskContext $context
 	 * @return Status
 	 */
-	protected function createMainpage( DatabaseInstaller $installer ) {
-		$status = Status::newGood();
-		$title = Title::newMainPage();
-		if ( $title->exists() ) {
-			$status->warning( 'config-install-mainpage-exists' );
-			return $status;
-		}
-		try {
-			$path = dirname( __DIR__ ) . '/content/mainpage/' . $this->edition . '.html';
-			echo "$path\n";
+	public function createMainpage( ITaskContext $context ) {
+		$contentDir = dirname( __DIR__ ) . '/content';
+		$status = $this->createPage(
+			Title::newMainPage(),
+			$this->getLocalizedContent( "$contentDir/mainpage/{$this->edition}.html" ),
+			'config-install-mainpage-exists',
+			'config-install-mainpage-failed'
+		);
 
-			$rawContent = file_get_contents( $path );
-			$processedContent = preg_replace_callback(
-				'#\{\{int:(.*?)\}\}#si',
-				static function ( $matches ) {
-					return wfMessage( $matches[1] )->inContentLanguage()->text();
-				},
-				$rawContent
-			);
-			$content = new WikitextContent( $processedContent );
-			$page = MediaWikiServices::getInstance()->getWikiPageFactory()
-				->newFromTitle( $title );
-			$user = User::newSystemUser( 'BlueSpice default' );
-
-			$updater = $page->newPageUpdater( $user );
-			$updater->setContent( SlotRecord::MAIN, $content );
-			$comment = CommentStoreComment::newUnsavedComment( '' );
-			$updater->saveRevision( $comment, EDIT_NEW );
-			$status = $updater->getStatus();
-		} catch ( Exception $e ) {
-			// using raw, because $wgShowExceptionDetails can not be set yet
-			$status->fatal( 'config-install-mainpage-failed', $e->getMessage() );
+		$helpPath = "$contentDir/gettingstarted/{$this->edition}.html";
+		if ( file_exists( $helpPath ) ) {
+			$helpTitle = wfMessage( "bs-gettingstarted-content-{$this->edition}-title" )
+				->inContentLanguage()->plain();
+			$status->merge( $this->createPage(
+				Title::makeTitleSafe( NS_HELP, $helpTitle ),
+				$this->getLocalizedContent( $helpPath ),
+				'config-install-mainpage-exists',
+				'config-install-default-bs-content-failed'
+			) );
 		}
 
 		return $status;
@@ -129,34 +106,69 @@ class BsCliInstaller extends CliInstaller {
 	/**
 	 * Sidebar with BlueSpice content
 	 *
-	 * @param DatabaseInstaller $installer
+	 * @param ITaskContext $context
 	 * @return Status
 	 */
-	protected function createSidebar( DatabaseInstaller $installer ) {
+	public function createSidebar( ITaskContext $context ) {
+		return $this->createPage(
+			Title::makeTitleSafe( NS_MEDIAWIKI, 'Sidebar' ),
+			file_get_contents( dirname( __DIR__ ) . '/content/sidebar/' . $this->edition . '.wikitext' ),
+			'config-install-sidebar-exists',
+			'config-install-sidebar-failed'
+		);
+	}
+
+	/**
+	 * Replaces `{{int:...}}` with the raw wikitext of the message in the content language,
+	 * so templates and magic words inside the messages are kept for the page to render,
+	 * and `{{InstallerOption:...}}` like core's InitialContentTask does.
+	 *
+	 * @param string $path
+	 * @return string
+	 */
+	private function getLocalizedContent( string $path ): string {
+		$content = preg_replace_callback(
+			'#\{\{int:(.*?)\}\}#si',
+			static function ( $matches ) {
+				return wfMessage( $matches[1] )->inContentLanguage()->plain();
+			},
+			file_get_contents( $path )
+		);
+		return preg_replace_callback(
+			'/\{\{ *InstallerOption: *(\w+) *}}/',
+			function ( $matches ) {
+				return (string)$this->getVar( '_' . $matches[1] );
+			},
+			$content
+		);
+	}
+
+	/**
+	 * @param Title $title
+	 * @param string $text
+	 * @param string $existsMessage
+	 * @param string $failureMessage
+	 * @return Status
+	 */
+	private function createPage( Title $title, string $text, string $existsMessage, string $failureMessage ) {
 		$status = Status::newGood();
-		$title = Title::makeTitleSafe( NS_MEDIAWIKI, 'Sidebar' );
 		if ( $title->exists() ) {
-			$status->warning( 'config-install-sidebar-exists' );
+			$status->warning( $existsMessage );
 			return $status;
 		}
 		try {
-			$path = dirname( __DIR__ ) . '/content/sidebar/' . $this->edition . '.wikitext';
-			echo "$path\n";
-
-			$rawContent = file_get_contents( $path );
-			$content = new WikitextContent( $rawContent );
 			$page = MediaWikiServices::getInstance()->getWikiPageFactory()
 				->newFromTitle( $title );
 			$user = User::newSystemUser( 'BlueSpice default' );
 
 			$updater = $page->newPageUpdater( $user );
-			$updater->setContent( SlotRecord::MAIN, $content );
+			$updater->setContent( SlotRecord::MAIN, new WikitextContent( $text ) );
 			$comment = CommentStoreComment::newUnsavedComment( '' );
 			$updater->saveRevision( $comment, EDIT_NEW );
 			$status = $updater->getStatus();
 		} catch ( Exception $e ) {
 			// using raw, because $wgShowExceptionDetails can not be set yet
-			$status->fatal( 'config-install-sidebar-failed', $e->getMessage() );
+			$status->fatal( $failureMessage, $e->getMessage() );
 		}
 
 		return $status;
