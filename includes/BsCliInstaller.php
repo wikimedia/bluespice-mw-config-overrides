@@ -1,8 +1,8 @@
 <?php
 
-require_once MW_INSTALL_PATH . '/mw-config/overrides/includes/BsEdition.php';
+require_once MW_INSTALL_PATH . '/mw-config/overrides/includes/BsProductContent.php';
 
-use BlueSpice\Installer\BsEdition;
+use BlueSpice\Installer\BsProductContent;
 use MediaWiki\CommentStore\CommentStoreComment;
 use MediaWiki\Content\WikitextContent;
 use MediaWiki\Installer\CliInstaller;
@@ -16,21 +16,11 @@ use MediaWiki\User\User;
 class BsCliInstaller extends CliInstaller {
 
 	/**
-	 * Selected BlueSpice edition
-	 *
-	 * @var string
-	 */
-	private $edition = 'free';
-
-	/**
 	 * @inheritDoc
 	 */
 	public function __construct( $siteName, $admin = null, array $options = [] ) {
 		$GLOBALS['wgMessagesDirs']['BlueSpiceInstaller'] = __DIR__ . '/../i18n';
 		parent::__construct( $siteName, $admin, $options );
-
-		$blueSpiceEdition = new BsEdition();
-		$this->edition = $blueSpiceEdition->getEdition();
 
 		$this->setVar( 'wgInstallerInitialPages', [] );
 		$this->addInstallStep( [
@@ -71,7 +61,8 @@ class BsCliInstaller extends CliInstaller {
 
 	/**
 	 * Insert Main Page with default content, and the "Getting started"
-	 * help page if the edition has one.
+	 * help page if the product has one.
+	 * Content depends on `BLUESPICE-PRODUCT` and the edition, see `BsProductContent`.
 	 * Files used by the galaxy content are imported by
 	 * BlueSpiceWikiFarm's `ImportDefaultContentFiles` during update.php,
 	 * because the installer does not know the upload directory.
@@ -80,17 +71,17 @@ class BsCliInstaller extends CliInstaller {
 	 * @return Status
 	 */
 	public function createMainpage( ITaskContext $context ) {
-		$contentDir = dirname( __DIR__ ) . '/content';
 		$status = $this->createPage(
 			Title::newMainPage(),
-			$this->getLocalizedContent( "$contentDir/mainpage/{$this->edition}.html" ),
+			$this->getLocalizedContent( BsProductContent::getPath( 'mainpage', 'html' ) ),
 			'config-install-mainpage-exists',
 			'config-install-mainpage-failed'
 		);
 
-		$helpPath = "$contentDir/gettingstarted/{$this->edition}.html";
-		if ( file_exists( $helpPath ) ) {
-			$helpTitle = wfMessage( "bs-gettingstarted-content-{$this->edition}-title" )
+		$helpPath = BsProductContent::getPath( 'gettingstarted', 'html' );
+		if ( $helpPath ) {
+			$product = BsProductContent::getProductFromPath( $helpPath );
+			$helpTitle = wfMessage( "bs-gettingstarted-content-$product-title" )
 				->inContentLanguage()->plain();
 			$status->merge( $this->createPage(
 				Title::makeTitleSafe( NS_HELP, $helpTitle ),
@@ -112,7 +103,7 @@ class BsCliInstaller extends CliInstaller {
 	public function createSidebar( ITaskContext $context ) {
 		return $this->createPage(
 			Title::makeTitleSafe( NS_MEDIAWIKI, 'Sidebar' ),
-			file_get_contents( dirname( __DIR__ ) . '/content/sidebar/' . $this->edition . '.wikitext' ),
+			file_get_contents( BsProductContent::getPath( 'sidebar', 'wikitext' ) ),
 			'config-install-sidebar-exists',
 			'config-install-sidebar-failed'
 		);
